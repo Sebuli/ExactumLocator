@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingBottom="50dp"
+    android:background="#ffffff"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="40dp">
+    tools:context="localization.indoor.exactumlocator.MainActivity">
+
+    <Button
+        android:text="Start locating"
+        android:id="@+id/button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_alignParentBottom="true"
+        android:onClick="startLocating"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/errorNotFound"
+        android:textColor="#000000"
+        android:layout_above="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:text="Floor: -          x: -            y: -" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageView"
+        android:scaleType = "fitXY"
+        android:src="@drawable/exactum1small"
+        android:adjustViewBounds="false"
+        android:baselineAlignBottom="false"
+        android:nestedScrollingEnabled="false"
+        android:cropToPadding="false"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_gravity="left|top"
+        android:layout_above="@+id/errorNotFound"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/pointer"
+        android:src="@drawable/locationpointer"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+
+</RelativeLayout>
