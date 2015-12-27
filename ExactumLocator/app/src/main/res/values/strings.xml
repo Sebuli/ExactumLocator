@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Exactum Locator</string>
+    <string name="LocateMe">Locate Me</string>
+    <string name="title_activity_display_message">MyLocator</string>
+</resources>
