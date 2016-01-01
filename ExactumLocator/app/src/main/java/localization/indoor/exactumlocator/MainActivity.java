@@ -127,12 +127,14 @@ public class MainActivity extends Activity
                 picture.setImageResource(R.drawable.exactum2small);
             } else if (floor.equals("3")) {
                 picture.setImageResource(R.drawable.exactum3small);
+            } else if (floor.equals("4")) {
+                picture.setImageResource(R.drawable.exactum4small);
             } else {
                 picture.setImageResource(R.drawable.exactumksmall);
             }
 
-            double widthper = centroid[0] / 2761.0;
-            double heightper = centroid[1] / 2839.0;
+            double widthper = centroid[0] / 2960.0;
+            double heightper = centroid[1] / 2840.0;
             sym.setX((float) (picture.getMeasuredWidth() * widthper + 20));
             sym.setY((float) (picture.getHeight() * heightper + 25));
 
