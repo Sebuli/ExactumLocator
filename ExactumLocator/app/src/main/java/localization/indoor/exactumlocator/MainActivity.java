@@ -184,8 +184,10 @@ public class MainActivity extends Activity
                 picture.setImageResource(R.drawable.exactumksmall);
             }
 
-            sym.setX((float) (centroid[0] + 20));
-            sym.setY((float) (centroid[1] + 25));
+            double widthper = centroid[0] / 592.0;
+            double heightper = centroid[1] / 568.0;
+            sym.setX((float) (picture.getMeasuredWidth() * widthper + 20));
+            sym.setY((float) (picture.getHeight() * heightper + 25));
 
             TextView button = (TextView) findViewById(R.id.errorNotFound);
             button.setText("Floor: " + floor + "        x: " + xValue + "       y: " + yValue);
