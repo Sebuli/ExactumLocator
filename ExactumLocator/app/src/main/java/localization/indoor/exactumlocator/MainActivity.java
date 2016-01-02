@@ -70,11 +70,62 @@ public class MainActivity extends Activity
     }
 
     private void inilializeAccessPoints() {
-        accessPoints.put("fe:f5:28:c5:e4:2c", "1 606 950");
-        accessPoints.put("c8:3a:35:0d:49:70", "2 1505.555555 103");
-        accessPoints.put("c8:d3:a3:07:9f:0a", "2 230 1450");
-        accessPoints.put("bc:f6:85:c3:7f:5a", "1 430 660");
-        accessPoints.put("e0:3f:49:3f:06:1c", "1 1320 770");
+        accessPoints.put("0:3a:99:d:ed:b0", "k 140 110 BK117");
+        accessPoints.put("f4:4e:5:81:a8:50", "k 525 250 BK107");
+        accessPoints.put("f4:4e:5:ad:65:80", "k 525 395 CK107");
+        accessPoints.put("b0:aa:77:a8:cf:e0", "k 215 250 BK114");
+        accessPoints.put("b0:aa:77:9f:11:20", "k 250 525 DK117");
+        accessPoints.put("b0:aa:77:cc:ce:c0", "k 515 525 DK107");
+        accessPoints.put("58:97:bd:62:3:90", "k 230 385 CK112");
+
+        accessPoints.put("b0:aa:77:3a:69:60", "1 465 285 B114");
+        accessPoints.put("b0:aa:77:a8:b5:80", "1 500 420 C116e");
+        accessPoints.put("84:b8:2:e2:a1:40", "1 300 275 B120");
+        accessPoints.put("b0:aa:77:9f:12:c0", "1 330 530 D122");
+        accessPoints.put("58:97:bd:67:b:40", "1 525 110 A111");
+        accessPoints.put("58:97:bd:6e:b0:b0", "1 35 275 B123");
+        accessPoints.put("d8:b1:90:23:15:40", "1 505 545 D117e");
+        accessPoints.put("d8:b1:90:3c:83:40", "1 300 395 C123");
+        accessPoints.put("d8:b1:90:3c:76:0", "1 100 395 C128");
+        accessPoints.put("d8:b1:90:23:23:f0", "1 120 130 A114");
+
+        accessPoints.put("b0:aa:77:a8:bb:10", "2 45 275 B228e");
+        accessPoints.put("b0:aa:77:cc:d3:e0", "2 455 405 C215e");
+        accessPoints.put("b0:aa:77:a8:a0:30", "2 45 405 C229e");
+        accessPoints.put("d8:b1:90:41:8a:30", "2 205 260 B222");
+        accessPoints.put("d8:b1:90:41:8d:20", "2 205 390 C222");
+        accessPoints.put("d8:b1:90:3c:7e:20", "2 450 275 B216e");
+        accessPoints.put("d8:b1:90:23:1d:0", "2 450 535 D224e");
+        accessPoints.put("d8:b1:90:34:5c:80", "2 20 535 D240e");
+        accessPoints.put("d8:b1:90:23:1a:d0", "2 485 140 A221e");
+        accessPoints.put("d8:b1:90:45:18:d0", "2 300 75 A210");
+        accessPoints.put("ec:bd:1d:52:99:c0", "2 125 300 B225");
+        accessPoints.put("f4:cf:e2:62:da:10", "2 250 535 D232");
+
+        accessPoints.put("f4:cf:e2:66:a8:c0", "3 70 275 B327e");
+        accessPoints.put("b0:aa:77:9f:14:40", "3 285 265 B322");
+        accessPoints.put("d8:b1:90:45:11:30", "3 480 360 C314e");
+        accessPoints.put("d8:b1:90:23:25:e0", "3 480 230 B314e");
+        accessPoints.put("d8:b1:90:3c:76:90", "3 30 405 C329e");
+        accessPoints.put("d8:b1:90:41:84:c0", "3 70 145 A337e");
+        accessPoints.put("d8:b1:90:26:7e:b0", "3 350 60 A311");
+        accessPoints.put("d8:b1:90:3c:76:70", "3 440 100 A318");
+        accessPoints.put("d8:b1:90:26:70:30", "3 455 495 D320e");
+        accessPoints.put("d8:b1:90:41:82:30", "3 350 140 A327e");
+        accessPoints.put("d8:b1:90:3c:7e:80", "3 305 540 D329e");
+        accessPoints.put("d8:b1:90:34:4d:40", "3 225 100 A347");
+        accessPoints.put("d8:b1:90:23:1f:c0", "3 175 535 D334e");
+        accessPoints.put("d8:b1:90:23:1d:60", "3 70 490 D342e");
+        accessPoints.put("84:b8:2:e2:a5:90", "3 330 400 C321");
+
+        accessPoints.put("d8:b1:90:34:5d:70", "4 290 540 D430");
+        accessPoints.put("ec:bd:1d:51:ac:20", "4 385 230 B413e");
+        accessPoints.put("ec:bd:1d:33:56:30", "4 385 100 A413");
+        accessPoints.put("ec:bd:1d:6a:f0:70", "4 225 145 A423");
+        accessPoints.put("ec:bd:1d:61:11:10", "4 290 360 C408");
+        accessPoints.put("ec:bd:1d:41:7a:a0", "4 440 490 D419e");
+        accessPoints.put("ec:bd:1d:3d:84:60", "4 440 410 C421e");
+
     }
 
     public void locate(View view) {
@@ -133,10 +184,8 @@ public class MainActivity extends Activity
                 picture.setImageResource(R.drawable.exactumksmall);
             }
 
-            double widthper = centroid[0] / 2960.0;
-            double heightper = centroid[1] / 2840.0;
-            sym.setX((float) (picture.getMeasuredWidth() * widthper + 20));
-            sym.setY((float) (picture.getHeight() * heightper + 25));
+            sym.setX((float) (centroid[0] + 20));
+            sym.setY((float) (centroid[1] + 25));
 
             TextView button = (TextView) findViewById(R.id.errorNotFound);
             button.setText("Floor: " + floor + "        x: " + xValue + "       y: " + yValue);
