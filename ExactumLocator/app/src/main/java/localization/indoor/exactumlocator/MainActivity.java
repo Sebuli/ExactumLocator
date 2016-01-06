@@ -195,7 +195,7 @@ public class MainActivity extends Activity
     }
 
     public double calculateDistance(int level){
-        double distance = Math.pow(10.0, (level/40.0) - 0.5);
+        double distance = 7*Math.pow(10.0, (level/40.0) - 0.5);
         return distance;
     }
 
