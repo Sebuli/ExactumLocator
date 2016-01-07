@@ -6,4 +6,4 @@ The code for the multilateration is gotten from the project https://github.com/p
 
 ##Installation
 
-To install the app simply download the file ExactumLocatorInstallation.apk to your android device and open it.
+To install the app simply download the file ExactumLocatorInstallation.apk to your android device and run it.
