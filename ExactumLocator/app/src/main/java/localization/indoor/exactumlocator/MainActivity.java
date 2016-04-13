@@ -2,24 +2,35 @@ package localization.indoor.exactumlocator;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
+import android.content.res.AssetManager;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.net.wifi.ScanResult;
 import android.widget.Toast;
 
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 
 
 public class MainActivity extends Activity
@@ -135,6 +146,9 @@ public class MainActivity extends Activity
         ArrayList<String> positions = new ArrayList<>();
         ArrayList<Integer> floors = new ArrayList<>();
 
+        ImageView picture = (ImageView) findViewById(R.id.imageView);
+        long[][] testData = new long[wifi.getScanResults().size()][2];
+        int k = 0;
         for (ScanResult result : wifi.getScanResults()){
             for (String accessPoint : accessPoints.keySet()){
                 if (result.BSSID.equals(accessPoint)){
@@ -145,12 +159,12 @@ public class MainActivity extends Activity
                     floors.add(Integer.valueOf(position[0]));
                 }
             }
+            testData[k][1] = result.level;
+            String trimmed = result.BSSID.replace(":", "");
+            testData[k][0] = Long.parseLong(trimmed, 16);
+            k++;
         }
-        if (positions.size() < 2){
-            TextView button = (TextView) findViewById(R.id.errorNotFound);
-            String message = "Could not find enough access points";
-            button.setText(message);
-        } else {
+        if (positions.size() >= 2){
             double[][] pos = new double[positions.size()][2];
             double[] dist = new double[positions.size()];
             for(int i = 0; i < positions.size(); i++){
@@ -165,60 +179,215 @@ public class MainActivity extends Activity
 
             double[] centroid = optimum.getPoint().toArray();
 
-            String xValue = String.format("%.2f", centroid[0]);
-            String yValue = String.format("%.2f", centroid[1]);
-
-            ImageView picture = (ImageView) findViewById(R.id.imageView);
-            ImageView sym = (ImageView) findViewById(R.id.pointer);
-            String floor = getFloor(floors);
-
-            if (floor.equals("1")){
-                picture.setImageResource(R.drawable.exactum1small);
-            } else if (floor.equals("2")){
-                picture.setImageResource(R.drawable.exactum2small);
-            } else if (floor.equals("3")) {
-                picture.setImageResource(R.drawable.exactum3small);
-            } else if (floor.equals("4")) {
-                picture.setImageResource(R.drawable.exactum4small);
-            } else {
-                picture.setImageResource(R.drawable.exactumksmall);
-            }
+            String xValue = String.format("%.0f", centroid[0]);
+            String yValue = String.format("%.0f", centroid[1]);
 
             double widthper = centroid[0] / 592.0;
             double heightper = centroid[1] / 568.0;
-            sym.setX((float) (picture.getMeasuredWidth() * widthper + 20));
-            sym.setY((float) (picture.getHeight() * heightper + 25));
+            ImageView symblue = (ImageView) findViewById(R.id.pointerblue);
+            symblue.setX((float) (picture.getMeasuredWidth() * widthper + 20));
+            symblue.setY((float) (picture.getHeight() * heightper + 25));
 
             TextView button = (TextView) findViewById(R.id.errorNotFound);
-            button.setText("Floor: " + floor + "        x: " + xValue + "       y: " + yValue);
+            button.setText("Triliteration:     x: " + xValue + " y: " + yValue);
+        }
+
+        double[][] trainingData = getTrainingData();
+
+        double[] position = getPosition(trainingData, testData);
+
+        double floor = position[0];
+        if (floor == 1.0){
+            picture.setImageResource(R.drawable.exactum1small);
+        } else if (floor == 2.0){
+            picture.setImageResource(R.drawable.exactum2small);
+        } else if (floor == 3.0) {
+            picture.setImageResource(R.drawable.exactum3small);
+        } else if (floor == 4.0) {
+            picture.setImageResource(R.drawable.exactum4small);
+        } else if (floor == 0.0){
+            picture.setImageResource(R.drawable.exactumksmall);
+        }
+
+        if(floor != -2.0) {
+            String xValue = String.format("%.0f", position[1]);
+            String yValue = String.format("%.0f", position[2]);
+
+            double widthper = position[1] / 592.0;
+            double heightper = position[2] / 568.0;
+            ImageView symgreen = (ImageView) findViewById(R.id.pointergreen);
+            symgreen.setX((float) (picture.getMeasuredWidth() * widthper + 20));
+            symgreen.setY((float) (picture.getHeight() * heightper + 25));
+
+            TextView button = (TextView) findViewById(R.id.textView2);
+            button.setText("Floor       " + String.format("%.0f", floor));
+            button = (TextView) findViewById(R.id.textView);
+            button.setText("Fingerprinting: x: " + xValue + " y: " + yValue);
         }
     }
+
+    private double[] getPosition(double[][] trainingData, long[][] testData) {
+        List<Double> positionsX = new ArrayList<>();
+        List<Double> positionsY = new ArrayList<>();
+        List<Double> floors = new ArrayList<>();
+
+        for (int k = 0; k < testData.length - 1; k = k +2) {
+            double smallest = 10000;
+            int smallestI = -1;
+            for (int i = 0; i < trainingData.length - 1; i++) {
+                for (int t = 3; t < trainingData[i].length - 1; t = t + 2) {
+                    if (trainingData[i][t] == testData[k][0]) {
+                        double distance = Math.abs(testData[k][1] - trainingData[i][t + 1]);
+                        if (distance < smallest) {
+                            smallest = distance;
+                            smallestI = i;
+                        }
+                    }
+                }
+                if (smallestI != -1) {
+                    int weight = (int)(20 - smallest);
+                    if(weight > 0) {
+                        for (int l = 0; l < weight; l++) {
+                            positionsX.add(trainingData[smallestI][1]);
+                            positionsY.add(trainingData[smallestI][2]);
+                            floors.add(trainingData[smallestI][0]);
+                        }
+                    } else {
+                        positionsX.add(trainingData[smallestI][1]);
+                        positionsY.add(trainingData[smallestI][2]);
+                        floors.add(trainingData[smallestI][0]);
+                    }
+                } else {
+                    positionsX.add(-1.0);
+                    positionsY.add(-1.0);
+                    floors.add(-2.0);
+                }
+            }
+        }
+        double floor = getFloor(floors);
+        double sumX = 0.0;
+        double sumY = 0.0;
+        int count = 0;
+        for (double i : positionsX){
+            if (i != -1){
+                count++;
+                sumX += i;
+            }
+        }
+        for (double i : positionsY){
+            if (i != -1){
+                sumY += i;
+            }
+        }
+        if (count == 0){
+            count++;
+        }
+        double x = sumX / count;
+        double y = sumY / count;
+        double[] result = {floor, x, y};
+        return result;
+    }
+    private long[][] getTestData() {
+        BufferedReader in;
+        String line;
+        List<String> data = new ArrayList<>();
+        try {
+            AssetManager assetManager = getAssets();
+            InputStream is = assetManager.open("testData.txt");
+            Reader reader = new InputStreamReader(is);
+            in = new BufferedReader(reader);
+            while((line = in.readLine()) != null)
+            {
+                data.add(line);
+            }
+            in.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        long[][] fingerprints = new long[data.size()][2];
+
+        for (int i = 0; i < data.size(); i++){
+            String[] fingerprint = data.get(i).split(";");
+            for (int t = 0; t < 2; t++) {
+                fingerprints[i][t] = Long.parseLong(fingerprint[t]);
+            }
+        }
+        return fingerprints;
+    }
+
+
+    private double[][] getTrainingData() {
+        BufferedReader in;
+        String line;
+        List<String> data = new ArrayList<>();
+        try {
+            AssetManager assetManager = getAssets();
+            InputStream is = assetManager.open("trainingData.txt");
+            Reader reader = new InputStreamReader(is);
+            in = new BufferedReader(reader);
+            while((line = in.readLine()) != null)
+            {
+                data.add(line);
+            }
+            in.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        double[][] fingerprints = new double[data.size()][1000];
+
+        for (int i = 0; i < data.size(); i++){
+            String[] fingerprint = data.get(i).split(";");
+            for (int t = 0; t < fingerprint.length; t++) {
+                fingerprints[i][t] = Double.parseDouble(fingerprint[t]);
+            }
+        }
+        return fingerprints;
+    }
+
 
     public double calculateDistance(int level){
         double distance = 7*Math.pow(10.0, (level/40.0) - 0.5);
         return distance;
     }
 
-    public String getFloor(ArrayList<Integer> floors){
-        String result = "";
-        HashMap<Integer, Integer> count = new HashMap<>();
+    public double getFloor(List<Double> floors){
+        HashMap<Double, Integer> count = new HashMap<>();
 
-        for(int floor : floors){
-            if (count.containsKey(floor)){
+        for(double floor : floors){
+            if (count.containsKey(floor) && floor != -2.0){
                 count.put(floor,count.get(floor) + 1);
-            } else {
-                count.put(floor, 1);
+            } else if (floor != -2.0){
+                count.put(floor, 1 );
             }
         }
         int most = 0;
-        int currentFloor = -1;
-        for (int floor : count.keySet()){
+        double currentFloor = -2;
+        for (double floor : count.keySet()){
             if (count.get(floor) > most){
                 most = count.get(floor);
                 currentFloor = floor;
             }
         }
 
-        return result + currentFloor;
+        return currentFloor;
+    }
+
+    public static int hex2decimal(String s) {
+        String digits = "0123456789ABCDEF";
+        s = s.toUpperCase();
+        int val = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            int d = digits.indexOf(c);
+            val = 16*val + d;
+        }
+        System.out.print(val);
+        return val;
     }
 }

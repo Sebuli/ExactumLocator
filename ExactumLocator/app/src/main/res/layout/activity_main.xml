@@ -27,9 +27,9 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/errorNotFound"
         android:textColor="#000000"
+        android:text="Triliteration:     x: -       y: -"
         android:layout_above="@+id/button"
-        android:layout_centerHorizontal="true"
-        android:text="Floor: -          x: -            y: -" />
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:layout_width="match_parent"
@@ -50,11 +50,45 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/pointer"
-        android:src="@drawable/locationpointer"
+        android:id="@+id/pointerblue"
+        android:src="@drawable/locationpointerblue"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/textView"
+        android:textColor="#000000"
+        android:text="Fingerprinting: x: -       y: -"
+        android:layout_below="@+id/errorNotFound"
+        android:layout_alignLeft="@+id/errorNotFound"
+        android:layout_alignStart="@+id/errorNotFound" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/textView2"
+        android:textColor="#000000"
+        android:text="Floor"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/textView"
+        android:layout_alignBottom="@+id/textView"
+        android:layout_toLeftOf="@+id/textView" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/pointergreen"
+        android:src="@drawable/locationpointergreen"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_alignLeft="@+id/button"
+        android:layout_alignStart="@+id/button" />
 
 
 </RelativeLayout>
