@@ -70,7 +70,7 @@ public class MainActivity extends Activity
                             }
                         });
                     }
-                }, 0, 2000);
+                }, 0, 5000);
             }
         });
         wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -81,13 +81,13 @@ public class MainActivity extends Activity
     }
 
     private void inilializeAccessPoints() {
-        accessPoints.put("0:3a:99:d:ed:b0", "k 140 110 BK117");
-        accessPoints.put("f4:4e:5:81:a8:50", "k 525 250 BK107");
-        accessPoints.put("f4:4e:5:ad:65:80", "k 525 395 CK107");
-        accessPoints.put("b0:aa:77:a8:cf:e0", "k 215 250 BK114");
-        accessPoints.put("b0:aa:77:9f:11:20", "k 250 525 DK117");
-        accessPoints.put("b0:aa:77:cc:ce:c0", "k 515 525 DK107");
-        accessPoints.put("58:97:bd:62:3:90", "k 230 385 CK112");
+        accessPoints.put("0:3a:99:d:ed:b0", "0 140 110 BK117");
+        accessPoints.put("f4:4e:5:81:a8:50", "0 525 250 BK107");
+        accessPoints.put("f4:4e:5:ad:65:80", "0 525 395 CK107");
+        accessPoints.put("b0:aa:77:a8:cf:e0", "0 215 250 BK114");
+        accessPoints.put("b0:aa:77:9f:11:20", "0 250 525 DK117");
+        accessPoints.put("b0:aa:77:cc:ce:c0", "0 515 525 DK107");
+        accessPoints.put("58:97:bd:62:3:90", "0 230 385 CK112");
 
         accessPoints.put("b0:aa:77:3a:69:60", "1 465 285 B114");
         accessPoints.put("b0:aa:77:a8:b5:80", "1 500 420 C116e");
@@ -144,7 +144,6 @@ public class MainActivity extends Activity
 
         ArrayList<Double> distances = new ArrayList<>();
         ArrayList<String> positions = new ArrayList<>();
-        ArrayList<Integer> floors = new ArrayList<>();
 
         ImageView picture = (ImageView) findViewById(R.id.imageView);
         long[][] testData = new long[wifi.getScanResults().size()][2];
@@ -156,7 +155,6 @@ public class MainActivity extends Activity
                     distances.add(distance);
                     String[] position = accessPoints.get(accessPoint).split((" "));
                     positions.add(position[1] + " " + position[2]);
-                    floors.add(Integer.valueOf(position[0]));
                 }
             }
             testData[k][1] = result.level;
@@ -167,11 +165,16 @@ public class MainActivity extends Activity
         if (positions.size() >= 2){
             double[][] pos = new double[positions.size()][2];
             double[] dist = new double[positions.size()];
+            double largestDist = getLargestDistance(dist);
             for(int i = 0; i < positions.size(); i++){
-                String[] currentPos = positions.get(i).split(" ");
-                pos[i][0] = Double.parseDouble(currentPos[0]);
-                pos[i][1] = Double.parseDouble(currentPos[1]);
-                dist[i] = distances.get(i);
+                int weight = (int)(largestDist - distances.get(i));
+                weight = weight == 0 ? 1 : weight;
+                for (int value = 0; value < weight; value++) {
+                    String[] currentPos = positions.get(i).split(" ");
+                    pos[i][0] = Double.parseDouble(currentPos[0]);
+                    pos[i][1] = Double.parseDouble(currentPos[1]);
+                    dist[i] = distances.get(i);
+                }
             }
 
             NonLinearLeastSquaresSolver solver = new NonLinearLeastSquaresSolver(new TrilaterationFunction(pos, dist), new LevenbergMarquardtOptimizer());
@@ -192,7 +195,7 @@ public class MainActivity extends Activity
             button.setText("Triliteration:     x: " + xValue + " y: " + yValue);
         }
 
-        double[][] trainingData = getTrainingData();
+        long[][] trainingData = getTrainingData();
 
         double[] position = getPosition(trainingData, testData);
 
@@ -226,12 +229,24 @@ public class MainActivity extends Activity
         }
     }
 
-    private double[] getPosition(double[][] trainingData, long[][] testData) {
-        List<Double> positionsX = new ArrayList<>();
-        List<Double> positionsY = new ArrayList<>();
-        List<Double> floors = new ArrayList<>();
+    private double getLargestDistance(double[] dist){
+        double largest = 0.0;
 
-        for (int k = 0; k < testData.length - 1; k = k +2) {
+        for (int i = 0; i < dist.length; i++){
+            if (dist[i] > largest){
+                largest = dist[i];
+            }
+        }
+
+        return largest;
+    }
+
+    private double[] getPosition(long[][] trainingData, long[][] testData) {
+        List<Long> positionsX = new ArrayList<>();
+        List<Long> positionsY = new ArrayList<>();
+        List<Long> floors = new ArrayList<>();
+
+        for (int k = 0; k < testData.length; k++) {
             double smallest = 10000;
             int smallestI = -1;
             for (int i = 0; i < trainingData.length - 1; i++) {
@@ -245,22 +260,13 @@ public class MainActivity extends Activity
                     }
                 }
                 if (smallestI != -1) {
-                    int weight = (int)(20 - smallest);
-                    if(weight > 0) {
-                        for (int l = 0; l < weight; l++) {
-                            positionsX.add(trainingData[smallestI][1]);
-                            positionsY.add(trainingData[smallestI][2]);
-                            floors.add(trainingData[smallestI][0]);
-                        }
-                    } else {
-                        positionsX.add(trainingData[smallestI][1]);
-                        positionsY.add(trainingData[smallestI][2]);
-                        floors.add(trainingData[smallestI][0]);
-                    }
+                    positionsX.add(trainingData[smallestI][1]);
+                    positionsY.add(trainingData[smallestI][2]);
+                    floors.add(trainingData[smallestI][0]);
                 } else {
-                    positionsX.add(-1.0);
-                    positionsY.add(-1.0);
-                    floors.add(-2.0);
+                    positionsX.add(-1L);
+                    positionsY.add(-1L);
+                    floors.add(-2L);
                 }
             }
         }
@@ -268,22 +274,22 @@ public class MainActivity extends Activity
         double sumX = 0.0;
         double sumY = 0.0;
         int count = 0;
-        for (double i : positionsX){
-            if (i != -1){
+
+        for (int i = 0; i < positionsX.size(); i++){
+            double cuurentX = positionsX.get(i);
+            double cuurentY = positionsY.get(i);
+            if (cuurentX > 0 & cuurentX < 3000 & cuurentY > 0 & cuurentY < 3000){
                 count++;
-                sumX += i;
+                sumX += cuurentX;
+                sumY += cuurentY;
             }
         }
-        for (double i : positionsY){
-            if (i != -1){
-                sumY += i;
-            }
-        }
+
         if (count == 0){
             count++;
         }
-        double x = sumX / count;
-        double y = sumY / count;
+        double x = (sumX / count) * 0.2;
+        double y = (sumY / count) * 0.2;
         double[] result = {floor, x, y};
         return result;
     }
@@ -319,10 +325,11 @@ public class MainActivity extends Activity
     }
 
 
-    private double[][] getTrainingData() {
+    private long[][] getTrainingData() {
         BufferedReader in;
         String line;
         List<String> data = new ArrayList<>();
+        List<String> dataDifferentMacFormat = new ArrayList<>();
         try {
             AssetManager assetManager = getAssets();
             InputStream is = assetManager.open("trainingData.txt");
@@ -333,18 +340,37 @@ public class MainActivity extends Activity
                 data.add(line);
             }
             in.close();
+
+            is = assetManager.open("dataJoeTest.txt");
+            reader = new InputStreamReader(is);
+            in = new BufferedReader(reader);
+            while((line = in.readLine()) != null)
+            {
+                dataDifferentMacFormat.add(line);
+            }
+            in.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        double[][] fingerprints = new double[data.size()][1000];
-
+        long[][] fingerprints = new long[data.size() + dataDifferentMacFormat.size()][5000];
         for (int i = 0; i < data.size(); i++){
             String[] fingerprint = data.get(i).split(";");
             for (int t = 0; t < fingerprint.length; t++) {
-                fingerprints[i][t] = Double.parseDouble(fingerprint[t]);
+                fingerprints[i][t] = fingerprint[t].contains(".") ? Long.parseLong((fingerprint[t].split("\\."))[0]) : Long.parseLong(fingerprint[t]);
+            }
+        }
+
+        for (int i = data.size(); i < data.size() + dataDifferentMacFormat.size(); i++){
+            String[] fingerprint = dataDifferentMacFormat.get(i - data.size()).split(";");
+            for (int t = 0; t < fingerprint.length; t++) {
+                if (t != 1 && ((t%2) != 0)){
+                    fingerprints[i][t] = fingerprint[t].contains(".") ? Long.parseLong(fingerprint[t].split("\\.")[0], 16) : Long.parseLong(fingerprint[t], 16);
+                } else {
+                    fingerprints[i][t] = fingerprint[t].contains(".") ? Long.parseLong(fingerprint[t].split("\\.")[0]) : Long.parseLong(fingerprint[t]);
+                }
             }
         }
         return fingerprints;
@@ -356,10 +382,10 @@ public class MainActivity extends Activity
         return distance;
     }
 
-    public double getFloor(List<Double> floors){
-        HashMap<Double, Integer> count = new HashMap<>();
+    public double getFloor(List<Long> floors){
+        HashMap<Long, Integer> count = new HashMap<>();
 
-        for(double floor : floors){
+        for(long floor : floors){
             if (count.containsKey(floor) && floor != -2.0){
                 count.put(floor,count.get(floor) + 1);
             } else if (floor != -2.0){
@@ -368,7 +394,7 @@ public class MainActivity extends Activity
         }
         int most = 0;
         double currentFloor = -2;
-        for (double floor : count.keySet()){
+        for (long floor : count.keySet()){
             if (count.get(floor) > most){
                 most = count.get(floor);
                 currentFloor = floor;
@@ -376,18 +402,5 @@ public class MainActivity extends Activity
         }
 
         return currentFloor;
-    }
-
-    public static int hex2decimal(String s) {
-        String digits = "0123456789ABCDEF";
-        s = s.toUpperCase();
-        int val = 0;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            int d = digits.indexOf(c);
-            val = 16*val + d;
-        }
-        System.out.print(val);
-        return val;
     }
 }
