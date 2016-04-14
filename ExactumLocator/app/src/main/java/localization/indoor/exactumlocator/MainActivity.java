@@ -70,7 +70,7 @@ public class MainActivity extends Activity
                             }
                         });
                     }
-                }, 0, 5000);
+                }, 0, 7000);
             }
         });
         wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -163,17 +163,20 @@ public class MainActivity extends Activity
             k++;
         }
         if (positions.size() >= 2){
-            double[][] pos = new double[positions.size()][2];
-            double[] dist = new double[positions.size()];
-            double largestDist = getLargestDistance(dist);
+            int index = 0;
+            double largestDist = getLargestDistance(distances);
+            int size = getArraySize(distances, largestDist);
+            double[][] pos = new double[size][2];
+            double[] dist = new double[size];
             for(int i = 0; i < positions.size(); i++){
                 int weight = (int)(largestDist - distances.get(i));
-                weight = weight == 0 ? 1 : weight;
+                weight = weight <= 0 ? 1 : weight;
                 for (int value = 0; value < weight; value++) {
                     String[] currentPos = positions.get(i).split(" ");
-                    pos[i][0] = Double.parseDouble(currentPos[0]);
-                    pos[i][1] = Double.parseDouble(currentPos[1]);
-                    dist[i] = distances.get(i);
+                    pos[index][0] = Double.parseDouble(currentPos[0]);
+                    pos[index][1] = Double.parseDouble(currentPos[1]);
+                    dist[index] = distances.get(i);
+                    index++;
                 }
             }
 
@@ -229,12 +232,22 @@ public class MainActivity extends Activity
         }
     }
 
-    private double getLargestDistance(double[] dist){
+    private int getArraySize(ArrayList<Double> distances, double largestDist) {
+        int size = 0;
+        for (double dist : distances){
+            int weight = (int)(largestDist - dist);
+            weight = weight <= 0 ? 1 : weight;
+            size += weight;
+        }
+        return size;
+    }
+
+    private double getLargestDistance(ArrayList<Double> dist){
         double largest = 0.0;
 
-        for (int i = 0; i < dist.length; i++){
-            if (dist[i] > largest){
-                largest = dist[i];
+        for (double d : dist){
+            if (d > largest){
+                largest = d;
             }
         }
 
@@ -355,9 +368,10 @@ public class MainActivity extends Activity
             e.printStackTrace();
         }
 
-        long[][] fingerprints = new long[data.size() + dataDifferentMacFormat.size()][5000];
+        long[][] fingerprints = new long[data.size() + dataDifferentMacFormat.size()][];
         for (int i = 0; i < data.size(); i++){
             String[] fingerprint = data.get(i).split(";");
+            fingerprints[i] = new long[fingerprint.length];
             for (int t = 0; t < fingerprint.length; t++) {
                 fingerprints[i][t] = fingerprint[t].contains(".") ? Long.parseLong((fingerprint[t].split("\\."))[0]) : Long.parseLong(fingerprint[t]);
             }
@@ -365,6 +379,7 @@ public class MainActivity extends Activity
 
         for (int i = data.size(); i < data.size() + dataDifferentMacFormat.size(); i++){
             String[] fingerprint = dataDifferentMacFormat.get(i - data.size()).split(";");
+            fingerprints[i] = new long[fingerprint.length];
             for (int t = 0; t < fingerprint.length; t++) {
                 if (t != 1 && ((t%2) != 0)){
                     fingerprints[i][t] = fingerprint[t].contains(".") ? Long.parseLong(fingerprint[t].split("\\.")[0], 16) : Long.parseLong(fingerprint[t], 16);
